@@ -593,6 +593,7 @@ code {
   justify-content: center;
   gap: 8px;
   padding: 8px 11px;
+  text-decoration: none;
 }
 
 .primary-button {

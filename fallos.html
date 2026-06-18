@@ -3,14 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Panel - PSP Recovery Lab</title>
-    <meta
-      name="description"
-      content="Entrenador practico de recuperacion para 2DAM PSP: Streams, Method References, AtomicReference, Concurrent Collections y ServerSockets."
-    />
+    <title>Fallos - PSP Recovery Lab</title>
+    <meta name="description" content="Errores tipicos de recuperacion PSP." />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body data-page="dashboard">
+  <body data-page="mistakes">
     <div class="app-shell">
       <aside class="side-panel" aria-label="Navegacion principal">
         <a class="brand" href="index.html" aria-label="Inicio">
@@ -36,25 +33,13 @@
         <header class="topbar">
           <div>
             <p class="eyebrow">2DAM - PSP · Recuperacion practica</p>
-            <h1>Entrena codigo hasta que salga sin mirar</h1>
+            <h1>Fallos tipicos</h1>
           </div>
           <div class="countdown-card" aria-live="polite">
             <span>Tiempo restante</span>
             <strong id="countdown">Calculando...</strong>
           </div>
         </header>
-
-        <section class="focus-strip" aria-labelledby="focus-title">
-          <img
-            src="assets/recuperacion-psp-pau.png"
-            alt="Tabla de recuperacion de PSP con los temas asignados a Pau Silvestre"
-          />
-          <div>
-            <p class="eyebrow" id="focus-title">Objetivo real de Pau</p>
-            <h2>Streams, Method Reference, AtomicReference, Concurrent Collections y ServerSockets.</h2>
-            <div class="topic-chips" id="topic-chips"></div>
-          </div>
-        </section>
 
         <section class="view-panel" id="page-panel"></section>
       </main>

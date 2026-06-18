@@ -1780,11 +1780,7 @@ const mistakes = [
   },
 ];
 
-const views = ["dashboard", "practice", "temario", "patterns", "exam", "mistakes"];
-const viewAliases = { theory: "temario" };
-
 const state = {
-  view: "dashboard",
   topic: "all",
   patternTopic: "all",
   temarioTopic: "exam",
@@ -1800,6 +1796,14 @@ const state = {
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+
+function currentPage() {
+  return document.body.dataset.page || "dashboard";
+}
+
+function pagePanel() {
+  return $("#page-panel");
+}
 
 function load(key, fallback) {
   try {
@@ -1869,63 +1873,69 @@ function renderTopicChips() {
     .join("");
 }
 
-function getValidView(view) {
-  if (!view) return "dashboard";
-  const normalized = viewAliases[view] || view;
-  return views.includes(normalized) ? normalized : "dashboard";
-}
-
 function getClosestElement(target, selector) {
   const element = target instanceof Element ? target : target?.parentElement;
   return element?.closest(selector) || null;
 }
 
-function setView(view, { updateHash = true, forceRender = false } = {}) {
-  view = getValidView(view);
-  const changedView = state.view !== view;
-
-  state.view = view;
-  $$("[data-view-panel]").forEach((panel) => {
-    panel.hidden = panel.dataset.viewPanel !== view;
-  });
-  $$(".main-nav [data-view-link]").forEach((link) => {
-    link.classList.toggle("is-active", link.dataset.viewLink === view);
-  });
-
-  if (updateHash && location.hash !== `#${view}`) {
-    history.pushState(null, "", `#${view}`);
-  }
-
-  if (changedView || forceRender || state.temarioScrollTo) {
-    renderView(view);
-    window.requestAnimationFrame(() => {
-      window.scrollTo({ top: 0, behavior: changedView ? "smooth" : "auto" });
-    });
-  }
+function renderCurrentPage() {
+  const page = currentPage();
+  if (page === "dashboard") renderDashboard();
+  if (page === "practice") renderPractice();
+  if (page === "temario") renderTemario();
+  if (page === "patterns") renderPatterns();
+  if (page === "exam") renderExam();
+  if (page === "mistakes") renderMistakes();
 }
 
-function openTemarioTopic(topicId) {
-  state.temarioTopic = topicId;
-  state.temarioScrollTo = topicId;
-  setView("temario", { forceRender: true });
-}
-
-function resetTemarioNav() {
+function initTemarioFromHash() {
+  const hash = location.hash.replace("#", "");
+  const topicIds = temarioTopics.map((topic) => topic.id);
+  if (topicIds.includes(hash)) {
+    state.temarioTopic = hash;
+    state.temarioScrollTo = hash;
+    return;
+  }
   state.temarioTopic = "exam";
   state.temarioScrollTo = null;
 }
 
-function renderView(view) {
-  if (view === "dashboard") renderDashboard();
-  if (view === "practice") renderPractice();
-  if (view === "temario") renderTemario();
-  if (view === "patterns") renderPatterns();
-  if (view === "exam") renderExam();
-  if (view === "mistakes") renderMistakes();
+function initPracticeFromHash() {
+  const hash = location.hash;
+  if (!hash.startsWith("#exercise-")) return;
+  const id = hash.replace("#exercise-", "");
+  const exercise = exerciseById(id);
+  if (exercise) state.topic = exercise.topic;
+}
+
+function scrollToHashTarget() {
+  const page = currentPage();
+  const hash = location.hash.replace("#", "");
+  if (!hash) return;
+
+  window.requestAnimationFrame(() => {
+    let target = document.getElementById(hash) || document.querySelector(location.hash);
+    if (!target && page === "temario") {
+      target = document.getElementById(`temario-${hash}`);
+    }
+    if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
+function initPage() {
+  const page = currentPage();
+
+  if (page === "temario") initTemarioFromHash();
+  if (page === "practice") initPracticeFromHash();
+
+  renderCurrentPage();
+  scrollToHashTarget();
+
+  if (page === "dashboard") renderTopicChips();
 }
 
 function renderDashboard() {
-  const panel = $("#dashboard-panel");
+  const panel = pagePanel();
   const total = exercises.length;
   const masteredCount = Object.values(state.mastered).filter(Boolean).length;
   const planDone = studyPlan.filter((item) => state.plan[item.id]).length;
@@ -1977,7 +1987,7 @@ function renderDashboard() {
           <p class="eyebrow">Siguiente accion</p>
           <h3>Ejercicios que aun no estan verdes</h3>
         </div>
-        <button class="primary-button" type="button" data-action="go-practice">Abrir ejercicios</button>
+        <a class="primary-button" href="ejercicios.html">Abrir ejercicios</a>
       </div>
       <div class="quick-grid">
         ${
@@ -2050,7 +2060,7 @@ function renderQuickExercise(exercise) {
 }
 
 function renderPractice() {
-  const panel = $("#practice-panel");
+  const panel = pagePanel();
   const filtered = state.topic === "all" ? exercises : exercises.filter((exercise) => exercise.topic === state.topic);
 
   panel.innerHTML = `
@@ -2252,7 +2262,7 @@ function filteredTemarioTopics() {
 }
 
 function renderTemario() {
-  const panel = $("#temario-panel");
+  const panel = pagePanel();
   const visible = filteredTemarioTopics();
 
   panel.innerHTML = `
@@ -2290,7 +2300,7 @@ function renderTemario() {
 }
 
 function renderPatterns() {
-  const panel = $("#patterns-panel");
+  const panel = pagePanel();
   const filtered =
     state.patternTopic === "all" ? patternCards : patternCards.filter((card) => card.topic === state.patternTopic);
 
@@ -2356,7 +2366,7 @@ function renderPatternCard(card) {
 }
 
 function renderExam() {
-  const panel = $("#exam-panel");
+  const panel = pagePanel();
   const examExercises = state.examIds.map(exerciseById).filter(Boolean);
   const hasExam = examExercises.length > 0;
 
@@ -2437,7 +2447,7 @@ function renderExamCard(exercise, index) {
 }
 
 function renderMistakes() {
-  const panel = $("#mistakes-panel");
+  const panel = pagePanel();
   panel.innerHTML = `
     <div class="section-header">
       <div>
@@ -2589,12 +2599,7 @@ function copyText(text) {
 }
 
 function scrollToExercise(id) {
-  state.topic = exerciseById(id)?.topic || "all";
-  setView("practice");
-  window.requestAnimationFrame(() => {
-    const target = $(`#exercise-${id}`);
-    if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
+  window.location.href = `ejercicios.html#exercise-${id}`;
 }
 
 function clearProgress() {
@@ -2614,30 +2619,16 @@ function clearProgress() {
   save("examIds", state.examIds);
   save("examEnd", state.examEnd);
   showToast("Progreso reiniciado.");
-  renderView(state.view);
+  renderCurrentPage();
 }
 
 document.addEventListener("click", (event) => {
-  const viewLink = getClosestElement(event.target, "[data-view-link]");
-  if (viewLink) {
-    event.preventDefault();
-    if (viewLink.closest(".main-nav") && viewLink.dataset.viewLink === "temario") {
-      resetTemarioNav();
-    }
-    setView(viewLink.dataset.viewLink);
-    return;
-  }
-
   const action = getClosestElement(event.target, "[data-action]");
   if (!action) return;
 
   const id = action.dataset.id;
 
   switch (action.dataset.action) {
-    case "open-temario":
-      event.preventDefault();
-      openTemarioTopic(action.dataset.temarioTopic);
-      break;
     case "filter-topic":
       state.topic = action.dataset.topic;
       renderPractice();
@@ -2678,9 +2669,6 @@ document.addEventListener("click", (event) => {
     }
     case "open-exercise":
       scrollToExercise(id);
-      break;
-    case "go-practice":
-      setView("practice");
       break;
     case "toggle-flash": {
       const card = $(`[data-flash-card="${id}"]`);
@@ -2750,19 +2738,24 @@ document.addEventListener("change", (event) => {
   }
 });
 
-function syncViewFromHash() {
-  const hashView = getValidView(location.hash.replace("#", ""));
-  if (hashView === "temario" && state.view !== "temario") {
-    resetTemarioNav();
+window.addEventListener("hashchange", () => {
+  const page = currentPage();
+  if (page === "temario") {
+    initTemarioFromHash();
+    renderTemario();
+    scrollToHashTarget();
   }
-  setView(hashView, { updateHash: false });
-}
+  if (page === "practice") {
+    initPracticeFromHash();
+    renderPractice();
+    scrollToHashTarget();
+  }
+});
 
-window.addEventListener("hashchange", syncViewFromHash);
-window.addEventListener("popstate", syncViewFromHash);
-
-renderTopicChips();
-setView(getValidView(location.hash.replace("#", "")), { updateHash: false, forceRender: true });
+initPage();
 updateCountdown();
 window.setInterval(updateCountdown, 30_000);
-window.setInterval(updateExamTimer, 1_000);
+if (currentPage() === "exam") {
+  updateExamTimer();
+  window.setInterval(updateExamTimer, 1_000);
+}
