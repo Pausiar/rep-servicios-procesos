@@ -1780,6 +1780,9 @@ const mistakes = [
   },
 ];
 
+const views = ["dashboard", "practice", "temario", "patterns", "exam", "mistakes"];
+const viewAliases = { theory: "temario" };
+
 const state = {
   view: "dashboard",
   topic: "all",
@@ -1866,18 +1869,50 @@ function renderTopicChips() {
     .join("");
 }
 
-function setView(view) {
+function getValidView(view) {
+  if (!view) return "dashboard";
+  const normalized = viewAliases[view] || view;
+  return views.includes(normalized) ? normalized : "dashboard";
+}
+
+function getClosestElement(target, selector) {
+  const element = target instanceof Element ? target : target?.parentElement;
+  return element?.closest(selector) || null;
+}
+
+function setView(view, { updateHash = true, forceRender = false } = {}) {
+  view = getValidView(view);
+  const changedView = state.view !== view;
+
   state.view = view;
   $$("[data-view-panel]").forEach((panel) => {
     panel.hidden = panel.dataset.viewPanel !== view;
   });
-  $$("[data-view-link]").forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.viewLink === view);
+  $$(".main-nav [data-view-link]").forEach((link) => {
+    link.classList.toggle("is-active", link.dataset.viewLink === view);
   });
-  if (location.hash !== `#${view}`) {
-    history.replaceState(null, "", `#${view}`);
+
+  if (updateHash && location.hash !== `#${view}`) {
+    history.pushState(null, "", `#${view}`);
   }
-  renderView(view);
+
+  if (changedView || forceRender || state.temarioScrollTo) {
+    renderView(view);
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: changedView ? "smooth" : "auto" });
+    });
+  }
+}
+
+function openTemarioTopic(topicId) {
+  state.temarioTopic = topicId;
+  state.temarioScrollTo = topicId;
+  setView("temario", { forceRender: true });
+}
+
+function resetTemarioNav() {
+  state.temarioTopic = "exam";
+  state.temarioScrollTo = null;
 }
 
 function renderView(view) {
@@ -2583,24 +2618,26 @@ function clearProgress() {
 }
 
 document.addEventListener("click", (event) => {
-  const viewLink = event.target.closest("[data-view-link]");
+  const viewLink = getClosestElement(event.target, "[data-view-link]");
   if (viewLink) {
     event.preventDefault();
-    const temarioTopic = viewLink.dataset.temarioTopic;
-    if (temarioTopic) {
-      state.temarioTopic = temarioTopic;
-      state.temarioScrollTo = temarioTopic;
+    if (viewLink.closest(".main-nav") && viewLink.dataset.viewLink === "temario") {
+      resetTemarioNav();
     }
     setView(viewLink.dataset.viewLink);
     return;
   }
 
-  const action = event.target.closest("[data-action]");
+  const action = getClosestElement(event.target, "[data-action]");
   if (!action) return;
 
   const id = action.dataset.id;
 
   switch (action.dataset.action) {
+    case "open-temario":
+      event.preventDefault();
+      openTemarioTopic(action.dataset.temarioTopic);
+      break;
     case "filter-topic":
       state.topic = action.dataset.topic;
       renderPractice();
@@ -2713,15 +2750,19 @@ document.addEventListener("change", (event) => {
   }
 });
 
-window.addEventListener("hashchange", () => {
-  const hash = location.hash.replace("#", "");
-  if (hash && ["dashboard", "practice", "temario", "patterns", "exam", "mistakes"].includes(hash)) {
-    setView(hash);
+function syncViewFromHash() {
+  const hashView = getValidView(location.hash.replace("#", ""));
+  if (hashView === "temario" && state.view !== "temario") {
+    resetTemarioNav();
   }
-});
+  setView(hashView, { updateHash: false });
+}
+
+window.addEventListener("hashchange", syncViewFromHash);
+window.addEventListener("popstate", syncViewFromHash);
 
 renderTopicChips();
-setView(location.hash.replace("#", "") || "dashboard");
+setView(getValidView(location.hash.replace("#", "")), { updateHash: false, forceRender: true });
 updateCountdown();
 window.setInterval(updateCountdown, 30_000);
 window.setInterval(updateExamTimer, 1_000);
