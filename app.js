@@ -1248,6 +1248,98 @@ public class Client {
   },
 ];
 
+
+const theorySections = [
+  {
+    title: "Idea basica de un Stream",
+    kicker: "Mentalidad",
+    body:
+      "Un Stream no es una lista nueva: es una forma de recorrer datos declarando pasos. Piensa siempre en fuente, operaciones intermedias y operacion terminal.",
+    bullets: [
+      "Fuente: de donde salen los datos: lista.stream(), Stream.of(...), Files.lines(...), Arrays.stream(...).",
+      "Intermedias: transforman o filtran y devuelven otro Stream: filter, map, sorted, distinct, limit, flatMap.",
+      "Terminales: disparan la ejecucion y producen resultado o efecto: toList, collect, forEach, count, reduce, anyMatch.",
+      "Si no escribes una terminal, el pipeline no se ejecuta. Si ya usaste una terminal, ese Stream queda consumido.",
+    ],
+    code: `List<String> result = names.stream()       // fuente
+    .filter(name -> name.length() == 4)  // intermedia
+    .map(String::toUpperCase)            // intermedia
+    .toList();                           // terminal`,
+  },
+  {
+    title: "Tipos de stream que mas salen",
+    kicker: "Fuentes",
+    body:
+      "Para el examen necesitas reconocer de que tipo parte el pipeline y que operaciones encajan mejor con cada fuente.",
+    bullets: [
+      "Stream<T>: objetos normales, por ejemplo Stream<String>, Stream<Movie> o Stream<User>.",
+      "IntStream, LongStream y DoubleStream: streams primitivos para numeros; traen sum, average, max y evitan boxing.",
+      "Files.lines(Path): lee un fichero como Stream<String>; cada linea es un elemento y conviene usar try-with-resources si no terminalizas enseguida.",
+      "Stream.of(...) y Arrays.stream(...): fuentes rapidas para datos de prueba o arrays.",
+      "parallelStream(): reparte trabajo entre hilos, pero no lo uses por defecto; exige operaciones sin estado compartido inseguro.",
+    ],
+    code: `Stream<String> words = Stream.of("java", "psp");
+IntStream numbers = IntStream.rangeClosed(1, 5);
+Stream<String> lines = Files.lines(Path.of("entrada.txt"));`,
+  },
+  {
+    title: "Como leer un pipeline sin perderte",
+    kicker: "Lectura",
+    body:
+      "Lee de izquierda a derecha como una cadena de montaje. En cada paso preguntate que entra, que sale y si sigue siendo Stream o ya es resultado final.",
+    bullets: [
+      "filter: entra un elemento y decide true/false; no cambia el tipo.",
+      "map: entra un elemento y sale otro valor; puede cambiar el tipo, por ejemplo Movie -> String.",
+      "sorted: ordena los elementos que siguen vivos; normalmente necesita Comparator.comparing(...).",
+      "distinct: elimina repetidos usando equals/hashCode.",
+      "flatMap: cuando cada elemento produce varios elementos y necesitas aplanarlos.",
+      "reduce: combina muchos valores en uno, como suma, maximo o concatenacion.",
+    ],
+    code: `movies.stream()
+    .filter(movie -> movie.rating() >= 8.8)  // Stream<Movie>
+    .sorted(Comparator.comparing(Movie::duration))
+    .map(Movie::title)                       // Stream<String>
+    .forEach(System.out::println);           // void`,
+  },
+  {
+    title: "Chuleta de terminales",
+    kicker: "Resultado",
+    body:
+      "La terminal marca que quieres obtener al final. Antes de escribir codigo, decide si necesitas lista, numero, booleano, Optional o imprimir.",
+    bullets: [
+      "toList o collect: cuando quieres guardar el resultado transformado.",
+      "forEach: cuando solo quieres hacer una accion, como imprimir o enviar mensajes.",
+      "count, sum, average: cuando quieres resumen numerico.",
+      "anyMatch, allMatch, noneMatch: cuando quieres una pregunta de si/no.",
+      "findFirst o max/min: devuelven Optional porque puede no existir resultado.",
+      "reduce: util cuando no hay terminal especializada o necesitas una acumulacion propia.",
+    ],
+    code: `long approved = students.stream()
+    .filter(student -> student.grade() >= 5)
+    .count();
+
+boolean hasAdmin = users.stream()
+    .anyMatch(user -> user.role().equals("ADMIN"));`,
+  },
+  {
+    title: "Errores de principiante con Streams",
+    kicker: "Evitar puntos tontos",
+    body:
+      "Casi todos los fallos vienen de olvidar que el Stream es de un solo uso y que las lambdas deben ser simples y sin estado compartido raro.",
+    bullets: [
+      "No reutilices el mismo Stream tras toList, count, forEach o cualquier terminal.",
+      "No metas add sobre una lista externa si puedes terminar con toList o collect.",
+      "No confundas map con filter: map transforma, filter decide si se queda.",
+      "No uses parallelStream si dentro actualizas ArrayList, HashMap o variables normales compartidas.",
+      "Cuando leas ficheros, recuerda importar java.nio.file.Files y Path.",
+    ],
+    code: `// Mal: el stream ya esta consumido tras count()
+Stream<String> stream = names.stream();
+long total = stream.count();
+List<String> upper = stream.map(String::toUpperCase).toList();`,
+  },
+];
+
 const patternCards = [
   {
     id: "p-stream-fit",
@@ -1539,6 +1631,7 @@ function setView(view) {
 function renderView(view) {
   if (view === "dashboard") renderDashboard();
   if (view === "practice") renderPractice();
+  if (view === "theory") renderTheory();
   if (view === "patterns") renderPatterns();
   if (view === "exam") renderExam();
   if (view === "mistakes") renderMistakes();
@@ -1792,6 +1885,51 @@ function renderExerciseCard(exercise) {
           </ul>
         </details>
       </aside>
+    </article>
+  `;
+}
+
+
+function renderTheory() {
+  const panel = $("#theory-panel");
+  panel.innerHTML = `
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Teoria</p>
+        <h2>Streams desde cero para saber por donde van los tiros</h2>
+        <p>Una lectura rapida para entender tipos de stream, partes del pipeline y como razonar un ejercicio antes de tocar el teclado.</p>
+      </div>
+    </div>
+
+    <div class="theory-hero">
+      <article>
+        <span class="chip" data-tone="green">Regla de oro</span>
+        <h3>Fuente -> intermedias -> terminal</h3>
+        <p>Todo ejercicio de streams se puede atacar identificando de donde salen los datos, que pasos los filtran o transforman, y que resultado final pide el enunciado.</p>
+      </article>
+      <article>
+        <span class="chip" data-tone="blue">Pregunta clave</span>
+        <h3>¿Que tipo tengo ahora?</h3>
+        <p>Despues de cada operacion, comprueba mentalmente si sigues teniendo Stream&lt;T&gt;, Stream&lt;R&gt;, un numero, un booleano, una List o un Optional.</p>
+      </article>
+    </div>
+
+    <div class="theory-grid">
+      ${theorySections.map(renderTheoryCard).join("")}
+    </div>
+  `;
+}
+
+function renderTheoryCard(section) {
+  return `
+    <article class="theory-card">
+      <span class="mini-label">${escapeHtml(section.kicker)}</span>
+      <h3>${escapeHtml(section.title)}</h3>
+      <p>${escapeHtml(section.body)}</p>
+      <ul class="theory-list">
+        ${section.bullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+      </ul>
+      <pre><code>${escapeHtml(section.code)}</code></pre>
     </article>
   `;
 }
@@ -2248,7 +2386,7 @@ document.addEventListener("change", (event) => {
 
 window.addEventListener("hashchange", () => {
   const hash = location.hash.replace("#", "");
-  if (hash && ["dashboard", "practice", "patterns", "exam", "mistakes"].includes(hash)) {
+  if (hash && ["dashboard", "practice", "theory", "patterns", "exam", "mistakes"].includes(hash)) {
     setView(hash);
   }
 });
