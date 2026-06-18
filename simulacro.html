@@ -46,7 +46,25 @@
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="layout.js"></script>
-    <script src="app.js"></script>
+    <script>
+(function () {
+  var parts = location.pathname.split("/").filter(Boolean);
+  var slugs = ["temario", "ejercicios", "patrones", "simulacro", "fallos", "index"];
+  var last = parts[parts.length - 1] || "";
+  var slug = last.replace(/\.html$/i, "");
+  if (location.protocol !== "file:" && (/\.html$/i.test(last) || slugs.indexOf(slug) >= 0)) parts.pop();
+  window.APP_ROOT = location.protocol === "file:" ? "" : parts.length ? "/" + parts.join("/") + "/" : "/";
+  window.bootLoadScripts = function (files, i) {
+    i = i || 0;
+    if (i >= files.length) return;
+    var tag = document.createElement("script");
+    tag.src = APP_ROOT + files[i];
+    tag.onload = function () { bootLoadScripts(files, i + 1); };
+    tag.onerror = function () { bootLoadScripts(files, i + 1); };
+    document.body.appendChild(tag);
+  };
+})();
+    </script>
+    <script>bootLoadScripts(["layout.js", "app.js"]);</script>
   </body>
 </html>

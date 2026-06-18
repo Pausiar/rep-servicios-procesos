@@ -19,11 +19,12 @@ function initLayout() {
   const page = document.body.dataset.page;
   const nav = document.getElementById("main-nav");
   const sideLinks = document.getElementById("side-links");
+  const root = window.APP_ROOT || "";
 
   if (nav) {
     nav.innerHTML = NAV_ITEMS.map(
       (item) => `
-        <a class="nav-button${item.page === page ? " is-active" : ""}" href="${item.href}">
+        <a class="nav-button${item.page === page ? " is-active" : ""}" href="${root}${item.href}">
           ${item.label}
         </a>
       `
@@ -32,7 +33,7 @@ function initLayout() {
 
   if (sideLinks) {
     sideLinks.innerHTML = TEMARIO_LINKS.map(
-      (item) => `<a href="temario.html#${item.id}">${item.label}</a>`
+      (item) => `<a href="${root}temario.html#${item.id}">${item.label}</a>`
     ).join("");
   }
 }

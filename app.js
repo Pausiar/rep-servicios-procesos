@@ -1255,7 +1255,7 @@ const temarioTopics = [
     label: "Streams",
     tone: "green",
     exam: true,
-    source: "temario/a3_stream.md",
+    source: "material/a3_stream.md",
     doc: "https://docs.oracle.com/javase/tutorial/collections/streams/",
     intro:
       "Pipeline en tres fases: fuente, operaciones intermedias (lazy) y terminal (dispara la ejecucion). Sin terminal no pasa nada; tras una terminal el Stream queda consumido.",
@@ -1315,7 +1315,7 @@ const temarioTopics = [
     label: "Method References",
     tone: "blue",
     exam: true,
-    source: "temario/a2_method_references.md",
+    source: "material/a2_method_references.md",
     doc: "https://docs.oracle.com/javase/tutorial/java/javaOO/methodreferences.html",
     intro:
       "Atajo de una lambda que solo invoca un metodo pasando los parametros en el mismo orden. Sintaxis con ::.",
@@ -1367,7 +1367,7 @@ const temarioTopics = [
     label: "Variables atomicas",
     tone: "gold",
     exam: true,
-    source: "temario/a7_atomic_variables.md",
+    source: "material/a7_atomic_variables.md",
     doc: "https://docs.oracle.com/javase/tutorial/essential/concurrency/atomicvars.html",
     intro:
       "Operaciones indivisibles sobre valores compartidos entre hilos. Evitan get + set separados cuando necesitas consistencia.",
@@ -1408,7 +1408,7 @@ const temarioTopics = [
     label: "Concurrent Collections",
     tone: "green",
     exam: true,
-    source: "temario/a8_concurrent_collections.md",
+    source: "material/a8_concurrent_collections.md",
     doc: "https://docs.oracle.com/javase/tutorial/essential/concurrency/collections.html",
     intro:
       "Colecciones seguras para hilos del paquete java.util.concurrent. La coleccion es thread-safe, pero la operacion compuesta (get + put) puede no serlo.",
@@ -1450,7 +1450,7 @@ const temarioTopics = [
     label: "ServerSocket",
     tone: "red",
     exam: true,
-    source: "temario/a9_serversocket.md",
+    source: "material/a9_serversocket.md",
     doc: "https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/net/ServerSocket.html",
     intro:
       "Comunicacion TCP cliente-servidor. El servidor escucha un puerto; accept() bloquea hasta que llega un cliente.",
@@ -1492,7 +1492,7 @@ const temarioTopics = [
     label: "Lambda expressions",
     tone: "blue",
     exam: false,
-    source: "temario/a1_lambda_expressions.md",
+    source: "material/a1_lambda_expressions.md",
     doc: "https://docs.oracle.com/javase/tutorial/java/javaOO/lambdaexpressions.html",
     intro: "Bloques funcionales anonimos. Base previa a method references y streams.",
     tables: [
@@ -1512,7 +1512,7 @@ const temarioTopics = [
     label: "Virtual Threads",
     tone: "violet",
     exam: false,
-    source: "temario/a4_virtual_threads.md",
+    source: "material/a4_virtual_threads.md",
     doc: "https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html",
     intro: "Hilos ligeros para muchas tareas bloqueantes (I/O, accept, sleep).",
     tables: [
@@ -1532,7 +1532,7 @@ const temarioTopics = [
     label: "Synchronized",
     tone: "gold",
     exam: false,
-    source: "temario/a5_synchronized.md",
+    source: "material/a5_synchronized.md",
     doc: "https://docs.oracle.com/javase/tutorial/essential/concurrency/sync.html",
     intro: "Bloqueo implicito con monitor del objeto. Alternativa mas antigua que Lock y atomic.",
     tables: [
@@ -1551,7 +1551,7 @@ const temarioTopics = [
     label: "Lock",
     tone: "gold",
     exam: false,
-    source: "temario/a6_lock.md",
+    source: "material/a6_lock.md",
     doc: "https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/Lock.html",
     intro: "Bloqueo explicito con ReentrantLock: mas control que synchronized.",
     tables: [
@@ -1572,7 +1572,7 @@ const temarioTopics = [
     label: "Criptografia",
     tone: "red",
     exam: false,
-    source: "temario/a10_crypto.md",
+    source: "material/a10_crypto.md",
     doc: "https://docs.oracle.com/en/java/javase/23/docs/api/java.base/javax/crypto/Cipher.html",
     intro: "API javax.crypto y java.security para hash, cifrado simetrico/asimetrico y firma.",
     tables: [
@@ -1780,6 +1780,19 @@ const mistakes = [
   },
 ];
 
+function load(key, fallback) {
+  try {
+    const raw = localStorage.getItem(STORE_PREFIX + key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function save(key, value) {
+  localStorage.setItem(STORE_PREFIX + key, JSON.stringify(value));
+}
+
 const state = {
   topic: "all",
   patternTopic: "all",
@@ -1805,17 +1818,8 @@ function pagePanel() {
   return $("#page-panel");
 }
 
-function load(key, fallback) {
-  try {
-    const raw = localStorage.getItem(STORE_PREFIX + key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function save(key, value) {
-  localStorage.setItem(STORE_PREFIX + key, JSON.stringify(value));
+function appHref(path) {
+  return (window.APP_ROOT || "") + path;
 }
 
 function escapeHtml(value) {
@@ -1987,7 +1991,7 @@ function renderDashboard() {
           <p class="eyebrow">Siguiente accion</p>
           <h3>Ejercicios que aun no estan verdes</h3>
         </div>
-        <a class="primary-button" href="ejercicios.html">Abrir ejercicios</a>
+        <a class="primary-button" href="${appHref("ejercicios.html")}">Abrir ejercicios</a>
       </div>
       <div class="quick-grid">
         ${
@@ -2599,7 +2603,7 @@ function copyText(text) {
 }
 
 function scrollToExercise(id) {
-  window.location.href = `ejercicios.html#exercise-${id}`;
+  window.location.href = `${appHref("ejercicios.html")}#exercise-${id}`;
 }
 
 function clearProgress() {
