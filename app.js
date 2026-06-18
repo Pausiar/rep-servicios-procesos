@@ -1529,8 +1529,6 @@ const mistakes = [
   },
 ];
 
-const views = ["dashboard", "practice", "theory", "patterns", "exam", "mistakes"];
-
 const state = {
   view: "dashboard",
   topic: "all",
@@ -1616,17 +1614,7 @@ function renderTopicChips() {
     .join("");
 }
 
-function getValidView(view) {
-  return views.includes(view) ? view : "dashboard";
-}
-
-function getClosestElement(target, selector) {
-  const element = target instanceof Element ? target : target?.parentElement;
-  return element?.closest(selector) || null;
-}
-
 function setView(view) {
-  view = getValidView(view);
   state.view = view;
   $$("[data-view-panel]").forEach((panel) => {
     panel.hidden = panel.dataset.viewPanel !== view;
@@ -1635,7 +1623,7 @@ function setView(view) {
     button.classList.toggle("is-active", button.dataset.viewLink === view);
   });
   if (location.hash !== `#${view}`) {
-    history.pushState(null, "", `#${view}`);
+    history.replaceState(null, "", `#${view}`);
   }
   renderView(view);
 }
@@ -2275,14 +2263,14 @@ function clearProgress() {
 }
 
 document.addEventListener("click", (event) => {
-  const viewLink = getClosestElement(event.target, "[data-view-link]");
+  const viewLink = event.target.closest("[data-view-link]");
   if (viewLink) {
     event.preventDefault();
     setView(viewLink.dataset.viewLink);
     return;
   }
 
-  const action = getClosestElement(event.target, "[data-action]");
+  const action = event.target.closest("[data-action]");
   if (!action) return;
 
   const id = action.dataset.id;
@@ -2396,16 +2384,15 @@ document.addEventListener("change", (event) => {
   }
 });
 
-function syncViewFromHash() {
+window.addEventListener("hashchange", () => {
   const hash = location.hash.replace("#", "");
-  setView(getValidView(hash));
-}
-
-window.addEventListener("hashchange", syncViewFromHash);
-window.addEventListener("popstate", syncViewFromHash);
+  if (hash && ["dashboard", "practice", "theory", "patterns", "exam", "mistakes"].includes(hash)) {
+    setView(hash);
+  }
+});
 
 renderTopicChips();
-setView(getValidView(location.hash.replace("#", "")));
+setView(location.hash.replace("#", "") || "dashboard");
 updateCountdown();
 window.setInterval(updateCountdown, 30_000);
 window.setInterval(updateExamTimer, 1_000);
