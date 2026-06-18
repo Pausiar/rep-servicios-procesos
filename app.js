@@ -1249,94 +1249,345 @@ public class Client {
 ];
 
 
-const theorySections = [
+const temarioTopics = [
   {
-    title: "Idea basica de un Stream",
-    kicker: "Mentalidad",
-    body:
-      "Un Stream no es una lista nueva: es una forma de recorrer datos declarando pasos. Piensa siempre en fuente, operaciones intermedias y operacion terminal.",
-    bullets: [
-      "Fuente: de donde salen los datos: lista.stream(), Stream.of(...), Files.lines(...), Arrays.stream(...).",
-      "Intermedias: transforman o filtran y devuelven otro Stream: filter, map, sorted, distinct, limit, flatMap.",
-      "Terminales: disparan la ejecucion y producen resultado o efecto: toList, collect, forEach, count, reduce, anyMatch.",
-      "Si no escribes una terminal, el pipeline no se ejecuta. Si ya usaste una terminal, ese Stream queda consumido.",
+    id: "streams",
+    label: "Streams",
+    tone: "green",
+    exam: true,
+    source: "temario/a3_stream.md",
+    doc: "https://docs.oracle.com/javase/tutorial/collections/streams/",
+    intro:
+      "Pipeline en tres fases: fuente, operaciones intermedias (lazy) y terminal (dispara la ejecucion). Sin terminal no pasa nada; tras una terminal el Stream queda consumido.",
+    tables: [
+      {
+        title: "Fuentes: creacion del Stream",
+        rows: [
+          ["Arrays.stream(array)", "Stream desde un array", "Arrays.stream(new String[]{\"a\",\"b\"})"],
+          ["collection.stream()", "Stream desde List o Set", "lista.stream()"],
+          ["Stream.of(...)", "Elementos sueltos", "Stream.of(\"e1\", \"e2\", \"e3\")"],
+          ["Stream.generate(supplier)", "Stream infinito con Supplier", "Stream.generate(random::nextInt)"],
+          ["Stream.iterate(seed, fn)", "Secuencia infinita a partir de semilla", "Stream.iterate(100, n -> n + 10)"],
+          ["IntStream.range / rangeClosed", "Rangos numericos primitivos", "IntStream.rangeClosed(1, 5)  // 1..5"],
+          ["Files.lines(Path)", "Una linea = un elemento String", "Files.lines(Path.of(\"entrada.txt\"))"],
+        ],
+      },
+      {
+        title: "Intermedias: quitar y filtrar",
+        rows: [
+          ["skip(n)", "Salta los n primeros", ".skip(2)"],
+          ["limit(n)", "Se queda con los n primeros", ".limit(2)"],
+          ["distinct()", "Elimina duplicados (equals)", ".distinct()"],
+          ["dropWhile(pred)", "Elimina al inicio mientras cumple", ".dropWhile(n -> n % 2 == 0)"],
+          ["takeWhile(pred)", "Conserva al inicio mientras cumple", ".takeWhile(n -> n % 2 == 0)"],
+          ["filter(pred)", "Solo los que cumplen la condicion", ".filter(n -> n % 2 == 0)"],
+        ],
+      },
+      {
+        title: "Intermedias: ordenar y transformar",
+        rows: [
+          ["sorted()", "Orden natural", ".sorted()"],
+          ["sorted(Comparator)", "Orden personalizado", ".sorted(Comparator.comparing(Movie::duration).reversed())"],
+          ["map(fn)", "Transforma cada elemento (puede cambiar tipo)", ".map(Movie::title)"],
+          ["flatMap(fn)", "Aplana Stream anidados", "Stream.of(lista1, lista2).flatMap(List::stream)"],
+          ["mapMulti(fn)", "Emite varios elementos por cada uno", "mapMulti((e, d) -> { d.accept(e); })"],
+          ["peek(Consumer)", "Accion lateral sin transformar", ".peek(System.out::println)"],
+        ],
+      },
+      {
+        title: "Terminales: resultado y accion",
+        rows: [
+          ["count()", "Numero de elementos", "long n = stream.count()"],
+          ["min / max(Comparator)", "Optional del extremo", ".max(Integer::compareTo).orElseThrow()"],
+          ["findFirst()", "Optional del primero", ".findFirst()"],
+          ["anyMatch / allMatch / noneMatch", "Pregunta booleana sobre elementos", ".anyMatch(n -> n > 5)"],
+          ["reduce(accumulator)", "Acumula sin identidad; devuelve Optional", ".reduce((a, b) -> a + b)"],
+          ["reduce(identity, acc)", "Acumula con valor inicial", ".reduce(0, Integer::sum)"],
+          ["collect(Collector)", "Agrupa con Collectors", ".collect(Collectors.groupingBy(...))"],
+          ["toList()", "Lista inmutable (Java 16+)", ".toList()"],
+          ["forEach(Consumer)", "Accion por elemento; void", ".forEach(System.out::println)"],
+        ],
+      },
     ],
-    code: `List<String> result = names.stream()       // fuente
-    .filter(name -> name.length() == 4)  // intermedia
-    .map(String::toUpperCase)            // intermedia
-    .toList();                           // terminal`,
   },
   {
-    title: "Tipos de stream que mas salen",
-    kicker: "Fuentes",
-    body:
-      "Para el examen necesitas reconocer de que tipo parte el pipeline y que operaciones encajan mejor con cada fuente.",
-    bullets: [
-      "Stream<T>: objetos normales, por ejemplo Stream<String>, Stream<Movie> o Stream<User>.",
-      "IntStream, LongStream y DoubleStream: streams primitivos para numeros; traen sum, average, max y evitan boxing.",
-      "Files.lines(Path): lee un fichero como Stream<String>; cada linea es un elemento y conviene usar try-with-resources si no terminalizas enseguida.",
-      "Stream.of(...) y Arrays.stream(...): fuentes rapidas para datos de prueba o arrays.",
-      "parallelStream(): reparte trabajo entre hilos, pero no lo uses por defecto; exige operaciones sin estado compartido inseguro.",
+    id: "method",
+    label: "Method References",
+    tone: "blue",
+    exam: true,
+    source: "temario/a2_method_references.md",
+    doc: "https://docs.oracle.com/javase/tutorial/java/javaOO/methodreferences.html",
+    intro:
+      "Atajo de una lambda que solo invoca un metodo pasando los parametros en el mismo orden. Sintaxis con ::.",
+    tables: [
+      {
+        title: "Los 4 tipos de method reference",
+        rows: [
+          [
+            "Metodo static",
+            "Clase::metodoStatic",
+            "x -> Clase.metodoStatic(x)",
+            "Integer::parseInt, Math::abs",
+          ],
+          [
+            "Metodo de un objeto concreto",
+            "objeto::metodo",
+            "x -> objeto.metodo(x)",
+            "writer::println, blau::imprimir",
+          ],
+          [
+            "Metodo del primer parametro",
+            "Clase::metodoInstancia",
+            "(a, b) -> a.metodo(b)",
+            "String::compareToIgnoreCase, Estudiant::comparaPerEdat",
+          ],
+          [
+            "Constructor",
+            "Clase::new",
+            "x -> new Clase(x)",
+            "Usuario::new, Ciudad::new",
+          ],
+        ],
+        columns: ["Tipo", "Sintaxis", "Lambda equivalente", "Ejemplo"],
+      },
+      {
+        title: "Reglas rapidas",
+        rows: [
+          ["Mismo orden de parametros", "Si la lambda reordena argumentos, no puedes usar ::"],
+          ["Una sola invocacion", "La lambda debe limitarse a llamar al metodo, sin logica extra"],
+          ["Interfaz funcional", "La firma del metodo debe encajar con la interfaz (Consumer, Function, Comparator...)"],
+          ["Objeto vs Clase", "objeto::metodo fija la instancia; Clase::metodo deja que el primer argumento sea la instancia"],
+        ],
+        columns: ["Regla", "Detalle"],
+      },
     ],
-    code: `Stream<String> words = Stream.of("java", "psp");
-IntStream numbers = IntStream.rangeClosed(1, 5);
-Stream<String> lines = Files.lines(Path.of("entrada.txt"));`,
   },
   {
-    title: "Como leer un pipeline sin perderte",
-    kicker: "Lectura",
-    body:
-      "Lee de izquierda a derecha como una cadena de montaje. En cada paso preguntate que entra, que sale y si sigue siendo Stream o ya es resultado final.",
-    bullets: [
-      "filter: entra un elemento y decide true/false; no cambia el tipo.",
-      "map: entra un elemento y sale otro valor; puede cambiar el tipo, por ejemplo Movie -> String.",
-      "sorted: ordena los elementos que siguen vivos; normalmente necesita Comparator.comparing(...).",
-      "distinct: elimina repetidos usando equals/hashCode.",
-      "flatMap: cuando cada elemento produce varios elementos y necesitas aplanarlos.",
-      "reduce: combina muchos valores en uno, como suma, maximo o concatenacion.",
+    id: "atomic",
+    label: "Variables atomicas",
+    tone: "gold",
+    exam: true,
+    source: "temario/a7_atomic_variables.md",
+    doc: "https://docs.oracle.com/javase/tutorial/essential/concurrency/atomicvars.html",
+    intro:
+      "Operaciones indivisibles sobre valores compartidos entre hilos. Evitan get + set separados cuando necesitas consistencia.",
+    tables: [
+      {
+        title: "Clases del paquete java.util.concurrent.atomic",
+        rows: [
+          ["AtomicInteger", "Contadores int compartidos", "incrementAndGet, getAndUpdate, compareAndSet"],
+          ["AtomicLong", "IDs y contadores long", "getAndIncrement, incrementAndGet, compareAndSet"],
+          ["AtomicReference<T>", "Referencia a objeto inmutable", "set, get, getAndUpdate, compareAndSet"],
+        ],
+        columns: ["Clase", "Para que sirve", "Metodos clave"],
+      },
+      {
+        title: "Metodos que debes reconocer",
+        rows: [
+          ["get()", "Lee el valor actual", "int v = counter.get()"],
+          ["set(nuevo)", "Escribe sin condicion", "ref.set(new UserProfile(\"Pau\", 20))"],
+          ["incrementAndGet() / getAndIncrement()", "Suma 1 y devuelve valor nuevo o anterior", "next.getAndIncrement()"],
+          ["getAndUpdate(fn)", "Aplica fn al valor actual; devuelve el anterior", "ref.getAndUpdate(cur -> cur.name().equals(x) ? nuevo : cur)"],
+          ["compareAndSet(esperado, nuevo)", "Cambia solo si el valor actual == esperado; boolean", "state.compareAndSet(INIT, PROCESSING)"],
+        ],
+        columns: ["Metodo", "Comportamiento", "Ejemplo"],
+      },
+      {
+        title: "Patron de examen",
+        rows: [
+          ["Objeto inmutable", "record UserProfile(...); no mutar campos, crear uno nuevo"],
+          ["Transicion de estado", "compareAndSet para que solo un hilo ejecute perform()"],
+          ["Limite antes de incrementar", "Bucle con get + compareAndSet, no incrementAndGet a ciegas"],
+        ],
+        columns: ["Situacion", "Enfoque"],
+      },
     ],
-    code: `movies.stream()
-    .filter(movie -> movie.rating() >= 8.8)  // Stream<Movie>
-    .sorted(Comparator.comparing(Movie::duration))
-    .map(Movie::title)                       // Stream<String>
-    .forEach(System.out::println);           // void`,
   },
   {
-    title: "Chuleta de terminales",
-    kicker: "Resultado",
-    body:
-      "La terminal marca que quieres obtener al final. Antes de escribir codigo, decide si necesitas lista, numero, booleano, Optional o imprimir.",
-    bullets: [
-      "toList o collect: cuando quieres guardar el resultado transformado.",
-      "forEach: cuando solo quieres hacer una accion, como imprimir o enviar mensajes.",
-      "count, sum, average: cuando quieres resumen numerico.",
-      "anyMatch, allMatch, noneMatch: cuando quieres una pregunta de si/no.",
-      "findFirst o max/min: devuelven Optional porque puede no existir resultado.",
-      "reduce: util cuando no hay terminal especializada o necesitas una acumulacion propia.",
+    id: "concurrent",
+    label: "Concurrent Collections",
+    tone: "green",
+    exam: true,
+    source: "temario/a8_concurrent_collections.md",
+    doc: "https://docs.oracle.com/javase/tutorial/essential/concurrency/collections.html",
+    intro:
+      "Colecciones seguras para hilos del paquete java.util.concurrent. La coleccion es thread-safe, pero la operacion compuesta (get + put) puede no serlo.",
+    tables: [
+      {
+        title: "Implementaciones del temario",
+        rows: [
+          ["ConcurrentHashMap<K,V>", "Mapas compartidos; operaciones atomicas por clave", "Histogramas, grupos, reservas"],
+          ["CopyOnWriteArrayList<E>", "Copia al escribir; iteracion sin ConcurrentModificationException", "Listas con muchas lecturas y pocas escrituras"],
+          ["ConcurrentHashMap.newKeySet()", "Set concurrente sin mapa externo", "Grupos de usuarios, comprobar duplicados de IDs"],
+          ["CopyOnWriteArraySet", "Set sobre CopyOnWriteArrayList", "Conjuntos pequenos con pocas escrituras"],
+          ["BlockingQueue (varias)", "Colas con bloqueo productor/consumidor", "Patrones de mensajeria"],
+        ],
+        columns: ["Clase", "Cuando usarla", "Caso tipico"],
+      },
+      {
+        title: "ConcurrentHashMap: operaciones compuestas",
+        rows: [
+          ["putIfAbsent(k, v)", "Inserta solo si la clave no existe", "Inicializar contador a 0"],
+          ["computeIfAbsent(k, fn)", "Calcula valor si falta la clave", "Crear Set de grupo al primer usuario"],
+          ["compute(k, fn)", "Recalcula el valor de la clave atomicamente", "Reservas de hotel en una sola operacion"],
+          ["merge(k, v, fn)", "Combina valor existente con nuevo", "histograma.merge(fruta, 1, Integer::sum)"],
+        ],
+        columns: ["Metodo", "Que hace", "Evita"],
+      },
+      {
+        title: "Errores frecuentes",
+        rows: [
+          ["HashMap + hilos", "Race conditions en contadores y listas internas"],
+          ["get() luego put()", "Dos hilos pueden pisarse aunque el mapa sea concurrente"],
+          ["ArrayList como valor del mapa", "El valor compartido tambien debe ser concurrente o estar protegido"],
+        ],
+        columns: ["Error", "Consecuencia"],
+      },
     ],
-    code: `long approved = students.stream()
-    .filter(student -> student.grade() >= 5)
-    .count();
-
-boolean hasAdmin = users.stream()
-    .anyMatch(user -> user.role().equals("ADMIN"));`,
   },
   {
-    title: "Errores de principiante con Streams",
-    kicker: "Evitar puntos tontos",
-    body:
-      "Casi todos los fallos vienen de olvidar que el Stream es de un solo uso y que las lambdas deben ser simples y sin estado compartido raro.",
-    bullets: [
-      "No reutilices el mismo Stream tras toList, count, forEach o cualquier terminal.",
-      "No metas add sobre una lista externa si puedes terminar con toList o collect.",
-      "No confundas map con filter: map transforma, filter decide si se queda.",
-      "No uses parallelStream si dentro actualizas ArrayList, HashMap o variables normales compartidas.",
-      "Cuando leas ficheros, recuerda importar java.nio.file.Files y Path.",
+    id: "socket",
+    label: "ServerSocket",
+    tone: "red",
+    exam: true,
+    source: "temario/a9_serversocket.md",
+    doc: "https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/net/ServerSocket.html",
+    intro:
+      "Comunicacion TCP cliente-servidor. El servidor escucha un puerto; accept() bloquea hasta que llega un cliente.",
+    tables: [
+      {
+        title: "Servidor",
+        rows: [
+          ["Abrir puerto", "new ServerSocket(8080)", "try-with-resources; cierra al terminar"],
+          ["Esperar cliente", "serverSocket.accept()", "Bloquea; devuelve Socket por conexion"],
+          ["Enviar texto", "PrintWriter(out, true)", "getOutputStream(); autoFlush true para println"],
+          ["Recibir texto", "BufferedReader + InputStreamReader", "readLine() o lines() como Stream<String>"],
+          ["Multicliente", "Executors.newVirtualThreadPerTaskExecutor()", "accept en bucle; handle(socket) en tarea"],
+        ],
+        columns: ["Paso", "Codigo", "Nota"],
+      },
+      {
+        title: "Cliente",
+        rows: [
+          ["Conectar", "new Socket(\"localhost\", 8080)", "Socket(host, port), no ServerSocket"],
+          ["Enviar", "PrintWriter(socket.getOutputStream(), true)", "writer.println(\"hola\")"],
+          ["Recibir", "BufferedReader(new InputStreamReader(socket.getInputStream()))", "reader.readLine()"],
+          ["Cerrar", "try-with-resources sobre socket, writer y reader", "Libera puerto y recursos"],
+        ],
+        columns: ["Paso", "Codigo", "Nota"],
+      },
+      {
+        title: "Esqueleto de memoria",
+        rows: [
+          ["Servidor minimo", "while(true) { try(Socket s = accept()) { writer.println(...); } }", "Un cliente tras otro"],
+          ["Servidor concurrente", "while(true) { executor.submit(() -> handle(accept())); }", "No dormir en el hilo principal"],
+          ["Cliente minimo", "conectar -> println -> readLine -> imprimir", "Mismo socket para ida y vuelta"],
+        ],
+        columns: ["Patron", "Estructura", "Clave"],
+      },
     ],
-    code: `// Mal: el stream ya esta consumido tras count()
-Stream<String> stream = names.stream();
-long total = stream.count();
-List<String> upper = stream.map(String::toUpperCase).toList();`,
+  },
+  {
+    id: "lambda",
+    label: "Lambda expressions",
+    tone: "blue",
+    exam: false,
+    source: "temario/a1_lambda_expressions.md",
+    doc: "https://docs.oracle.com/javase/tutorial/java/javaOO/lambdaexpressions.html",
+    intro: "Bloques funcionales anonimos. Base previa a method references y streams.",
+    tables: [
+      {
+        title: "Sintaxis simplificada",
+        rows: [
+          ["Un solo parametro", "Se pueden omitir parentesis", "s -> s.length() en vez de (s) -> s.length()"],
+          ["Una sola expresion", "Se pueden omitir llaves y return", "(a, b) -> a + b"],
+          ["Varios parametros", "Parentesis obligatorios", "(a, b) -> a.compareTo(b)"],
+        ],
+        columns: ["Caso", "Regla", "Ejemplo"],
+      },
+    ],
+  },
+  {
+    id: "virtual",
+    label: "Virtual Threads",
+    tone: "violet",
+    exam: false,
+    source: "temario/a4_virtual_threads.md",
+    doc: "https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html",
+    intro: "Hilos ligeros para muchas tareas bloqueantes (I/O, accept, sleep).",
+    tables: [
+      {
+        title: "Formas de lanzar virtual threads",
+        rows: [
+          ["Thread.ofVirtual().start(runnable)", "Hilo virtual directo", "Thread.ofVirtual().start(() -> { ... })"],
+          ["Thread.startVirtualThread(runnable)", "Atajo estatico", "Thread.startVirtualThread(task)"],
+          ["Executors.newVirtualThreadPerTaskExecutor()", "Un virtual thread por tarea", "Ideal con ServerSocket.accept()"],
+        ],
+        columns: ["API", "Uso", "Ejemplo"],
+      },
+    ],
+  },
+  {
+    id: "sync",
+    label: "Synchronized",
+    tone: "gold",
+    exam: false,
+    source: "temario/a5_synchronized.md",
+    doc: "https://docs.oracle.com/javase/tutorial/essential/concurrency/sync.html",
+    intro: "Bloqueo implicito con monitor del objeto. Alternativa mas antigua que Lock y atomic.",
+    tables: [
+      {
+        title: "Dos formas",
+        rows: [
+          ["Metodo synchronized", "synchronized void metodo()", "Bloquea sobre this (instancia) o la clase (static)"],
+          ["Bloque synchronized", "synchronized (objeto) { ... }", "Monitor explicito sobre el objeto indicado"],
+        ],
+        columns: ["Forma", "Sintaxis", "Nota"],
+      },
+    ],
+  },
+  {
+    id: "lock",
+    label: "Lock",
+    tone: "gold",
+    exam: false,
+    source: "temario/a6_lock.md",
+    doc: "https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/Lock.html",
+    intro: "Bloqueo explicito con ReentrantLock: mas control que synchronized.",
+    tables: [
+      {
+        title: "Operaciones basicas",
+        rows: [
+          ["Crear", "Lock lock = new ReentrantLock()", "Un lock por recurso compartido"],
+          ["Adquirir", "lock.lock()", "Bloquea hasta obtener el lock"],
+          ["Liberar", "lock.unlock()", "Siempre en finally tras lock()"],
+          ["Intentar sin bloquear", "lock.tryLock()", "Devuelve boolean; util con timeout"],
+        ],
+        columns: ["Accion", "Metodo", "Detalle"],
+      },
+    ],
+  },
+  {
+    id: "crypto",
+    label: "Criptografia",
+    tone: "red",
+    exam: false,
+    source: "temario/a10_crypto.md",
+    doc: "https://docs.oracle.com/en/java/javase/23/docs/api/java.base/javax/crypto/Cipher.html",
+    intro: "API javax.crypto y java.security para hash, cifrado simetrico/asimetrico y firma.",
+    tables: [
+      {
+        title: "Piezas del temario",
+        rows: [
+          ["MessageDigest", "Hash SHA-256 de bytes", "Integridad, contrasenas"],
+          ["KeyGenerator + Cipher (AES)", "Cifrado simetrico", "Misma clave cifra y descifra"],
+          ["KeyPairGenerator + Cipher (RSA)", "Cifrado asimetrico", "Clave publica/privada"],
+          ["Signature", "Firma digital RSA", "Verificar autenticidad del mensaje"],
+          ["SecureRandom", "Numeros aleatorios seguros", "Generacion de claves y salts"],
+        ],
+        columns: ["Clase", "Para que", "Uso"],
+      },
+    ],
   },
 ];
 
@@ -1533,6 +1784,7 @@ const state = {
   view: "dashboard",
   topic: "all",
   patternTopic: "all",
+  temarioTopic: "exam",
   answers: load("answers", {}),
   examAnswers: load("examAnswers", {}),
   mastered: load("mastered", {}),
@@ -1631,7 +1883,7 @@ function setView(view) {
 function renderView(view) {
   if (view === "dashboard") renderDashboard();
   if (view === "practice") renderPractice();
-  if (view === "theory") renderTheory();
+  if (view === "temario") renderTemario();
   if (view === "patterns") renderPatterns();
   if (view === "exam") renderExam();
   if (view === "mistakes") renderMistakes();
@@ -1890,48 +2142,116 @@ function renderExerciseCard(exercise) {
 }
 
 
-function renderTheory() {
-  const panel = $("#theory-panel");
-  panel.innerHTML = `
-    <div class="section-header">
-      <div>
-        <p class="eyebrow">Teoria</p>
-        <h2>Streams desde cero para saber por donde van los tiros</h2>
-        <p>Una lectura rapida para entender tipos de stream, partes del pipeline y como razonar un ejercicio antes de tocar el teclado.</p>
+function renderTemarioTable(table) {
+  const columns = table.columns || ["Metodo / API", "Que hace", "Ejemplo"];
+  return `
+    <div class="temario-table-block">
+      <h4>${escapeHtml(table.title)}</h4>
+      <div class="temario-table-wrap">
+        <table class="temario-table">
+          <thead>
+            <tr>${columns.map((col) => `<th scope="col">${escapeHtml(col)}</th>`).join("")}</tr>
+          </thead>
+          <tbody>
+            ${table.rows
+              .map(
+                (row) => `
+                  <tr>
+                    ${row
+                      .map((cell, index) =>
+                        index === 0
+                          ? `<th scope="row"><code>${escapeHtml(cell)}</code></th>`
+                          : `<td>${escapeHtml(cell)}</td>`
+                      )
+                      .join("")}
+                  </tr>
+                `
+              )
+              .join("")}
+          </tbody>
+        </table>
       </div>
-    </div>
-
-    <div class="theory-hero">
-      <article>
-        <span class="chip" data-tone="green">Regla de oro</span>
-        <h3>Fuente -> intermedias -> terminal</h3>
-        <p>Todo ejercicio de streams se puede atacar identificando de donde salen los datos, que pasos los filtran o transforman, y que resultado final pide el enunciado.</p>
-      </article>
-      <article>
-        <span class="chip" data-tone="blue">Pregunta clave</span>
-        <h3>¿Que tipo tengo ahora?</h3>
-        <p>Despues de cada operacion, comprueba mentalmente si sigues teniendo Stream&lt;T&gt;, Stream&lt;R&gt;, un numero, un booleano, una List o un Optional.</p>
-      </article>
-    </div>
-
-    <div class="theory-grid">
-      ${theorySections.map(renderTheoryCard).join("")}
     </div>
   `;
 }
 
-function renderTheoryCard(section) {
+function renderTemarioTopic(topic) {
   return `
-    <article class="theory-card">
-      <span class="mini-label">${escapeHtml(section.kicker)}</span>
-      <h3>${escapeHtml(section.title)}</h3>
-      <p>${escapeHtml(section.body)}</p>
-      <ul class="theory-list">
-        ${section.bullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
-      </ul>
-      <pre><code>${escapeHtml(section.code)}</code></pre>
+    <article class="temario-topic" id="temario-${topic.id}">
+      <div class="temario-topic-header">
+        <div>
+          <span class="chip" data-tone="${topic.tone}">${escapeHtml(topic.label)}</span>
+          ${topic.exam ? `<span class="difficulty" data-level="examen">Recuperacion</span>` : ""}
+          <h3>${escapeHtml(topic.label)}</h3>
+          <p>${escapeHtml(topic.intro)}</p>
+        </div>
+        <div class="temario-links">
+          <a class="small-button" href="${escapeHtml(topic.source)}" target="_blank" rel="noopener">Markdown completo</a>
+          <a class="ghost-button" href="${escapeHtml(topic.doc)}" target="_blank" rel="noopener">Oracle docs</a>
+        </div>
+      </div>
+      <div class="temario-tables">
+        ${topic.tables.map(renderTemarioTable).join("")}
+      </div>
     </article>
   `;
+}
+
+function renderTemarioFilter(id, label, active) {
+  return `
+    <button
+      class="filter-button ${active === id ? "is-active" : ""}"
+      type="button"
+      data-action="filter-temario"
+      data-temario="${id}"
+    >
+      ${escapeHtml(label)}
+    </button>
+  `;
+}
+
+function filteredTemarioTopics() {
+  if (state.temarioTopic === "all") return temarioTopics;
+  if (state.temarioTopic === "exam") return temarioTopics.filter((topic) => topic.exam);
+  return temarioTopics.filter((topic) => topic.id === state.temarioTopic);
+}
+
+function renderTemario() {
+  const panel = $("#temario-panel");
+  const visible = filteredTemarioTopics();
+
+  panel.innerHTML = `
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Temario PSP</p>
+        <h2>Tablas de referencia por tema</h2>
+        <p>Contenido resumido del temario del instituto: tipos de streams, method references, atomic, concurrent y sockets.</p>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      ${renderTemarioFilter("exam", "Recuperacion Pau", state.temarioTopic)}
+      ${renderTemarioFilter("all", "Todo el temario", state.temarioTopic)}
+      ${temarioTopics.filter((t) => t.exam).map((t) => renderTemarioFilter(t.id, t.label, state.temarioTopic)).join("")}
+    </div>
+
+    <div class="temario-stack">
+      ${
+        visible.length
+          ? visible.map(renderTemarioTopic).join("")
+          : `<div class="empty-state">No hay temas con ese filtro.</div>`
+      }
+    </div>
+  `;
+
+  if (state.temarioScrollTo) {
+    const targetId = state.temarioScrollTo;
+    state.temarioScrollTo = null;
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById(`temario-${targetId}`);
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 }
 
 function renderPatterns() {
@@ -2266,6 +2586,11 @@ document.addEventListener("click", (event) => {
   const viewLink = event.target.closest("[data-view-link]");
   if (viewLink) {
     event.preventDefault();
+    const temarioTopic = viewLink.dataset.temarioTopic;
+    if (temarioTopic) {
+      state.temarioTopic = temarioTopic;
+      state.temarioScrollTo = temarioTopic;
+    }
     setView(viewLink.dataset.viewLink);
     return;
   }
@@ -2283,6 +2608,10 @@ document.addEventListener("click", (event) => {
     case "filter-pattern-topic":
       state.patternTopic = action.dataset.topic;
       renderPatterns();
+      break;
+    case "filter-temario":
+      state.temarioTopic = action.dataset.temario;
+      renderTemario();
       break;
     case "check-exercise": {
       const answer = state.answers[id] || "";
@@ -2386,7 +2715,7 @@ document.addEventListener("change", (event) => {
 
 window.addEventListener("hashchange", () => {
   const hash = location.hash.replace("#", "");
-  if (hash && ["dashboard", "practice", "theory", "patterns", "exam", "mistakes"].includes(hash)) {
+  if (hash && ["dashboard", "practice", "temario", "patterns", "exam", "mistakes"].includes(hash)) {
     setView(hash);
   }
 });

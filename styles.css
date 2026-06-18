@@ -324,6 +324,12 @@ code {
   color: var(--red);
 }
 
+.chip[data-tone="violet"] {
+  border-color: #c8bddf;
+  background: #ece8f5;
+  color: var(--violet);
+}
+
 .view-panel {
   display: grid;
   gap: 18px;
@@ -867,6 +873,115 @@ pre {
 .theory-grid {
   display: grid;
   gap: 16px;
+}
+
+.temario-stack {
+  display: grid;
+  gap: 24px;
+}
+
+.temario-topic {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: 0 10px 26px rgba(23, 32, 42, 0.05);
+  overflow: hidden;
+}
+
+.temario-topic-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 20px 0;
+  flex-wrap: wrap;
+}
+
+.temario-topic-header h3 {
+  margin: 10px 0 8px;
+}
+
+.temario-topic-header p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+  max-width: 62ch;
+}
+
+.temario-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.temario-links a {
+  text-decoration: none;
+}
+
+.temario-tables {
+  display: grid;
+  gap: 18px;
+  padding: 16px 20px 20px;
+}
+
+.temario-table-block h4 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.temario-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.temario-table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.temario-table th,
+.temario-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.45;
+}
+
+.temario-table thead th {
+  background: var(--paper);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.temario-table tbody tr:last-child th,
+.temario-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.temario-table tbody tr:nth-child(even) td,
+.temario-table tbody tr:nth-child(even) th[scope="row"] {
+  background: rgba(247, 248, 245, 0.72);
+}
+
+.temario-table th[scope="row"] {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.temario-table th[scope="row"] code,
+.temario-table td code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  color: var(--blue);
+  background: transparent;
+  padding: 0;
 }
 
 .theory-hero {
