@@ -136,9 +136,13 @@ code {
 }
 
 .nav-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: auto;
   padding: 10px 12px;
   text-align: center;
+  text-decoration: none;
   white-space: nowrap;
 }
 
